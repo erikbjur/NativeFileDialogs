@@ -15,7 +15,6 @@ set(LIBRARY_NAME FileDialogLibrary)
 set(APPLICATION_NAME FileDialogApp)
 
 # Set the output directories for the targets
-# set( OutputDir ${CMAKE_SOURCE_DIR}/bin/${CMAKE_SYSTEM_PROCESSOR}/${CMAKE_BUILD_TYPE} )
 set( OutputDir ${CMAKE_SOURCE_DIR}/bin/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}/${CMAKE_BUILD_TYPE} )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OutputDir}/${LIBRARY_NAME}/static_libs )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OutputDir}/${APPLICATION_NAME} )
