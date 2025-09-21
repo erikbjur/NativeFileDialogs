@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
+# Detect if this repo is the top-level project
+set(LIB_TOPLEVEL OFF)
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  set(LIB_TOPLEVEL ON)
+endif()
+
+# Option to build the demo app: ON if top-level, OFF when used as a subproject
+option(LIB_BUILD_DEMO "Build the demo executable for this library" ${LIB_TOPLEVEL})
+
 ############## MAC LIBRARY AND TEST APP ########################
 
 # Set the project name
@@ -15,18 +24,17 @@ set(LIBRARY_NAME FileDialogLibrary)
 set(APPLICATION_NAME FileDialogApp)
 
 # Set the output directories for the targets
-set( OutputDir ${CMAKE_SOURCE_DIR}/bin/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}/${CMAKE_BUILD_TYPE} )
-set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OutputDir}/${LIBRARY_NAME}/static_libs )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OutputDir}/${PROJECT_NAME})
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OutputDir}/${APPLICATION_NAME} )
 
 if (APPLE)
   # Add the source files for the static library
   set(LIBRARY_SOURCES
-      Library/Mac/src/FileDialogs.mm
+      ${CMAKE_CURRENT_LIST_DIR}/Library/Mac/src/FileDialogs.mm
   )
 
   set(APPLICATION_SOURCES 
-      Application/Mac/src/main.cpp
+      ${CMAKE_CURRENT_LIST_DIR}/Application/Mac/src/main.cpp
   )
 
   # Create a static library
@@ -37,39 +45,41 @@ if (APPLE)
 
   # Set the include directory for this library
   target_include_directories( ${LIBRARY_NAME} PUBLIC
-    Library/Mac/src
+    ${CMAKE_CURRENT_LIST_DIR}/Library/Mac/src
   )
 
   # Link Cocoa framework to the static library
   find_library( COCOA_LIBRARY Cocoa )
   target_link_libraries( ${LIBRARY_NAME} PRIVATE ${COCOA_LIBRARY} )
 
-  # Add the main.cpp file for the test application
-  add_executable(${APPLICATION_NAME} MACOSX_BUNDLE ${APPLICATION_SOURCES})
+  if (LIB_BUILD_DEMO)
+    # Add the main.cpp file for the test application
+    add_executable(${APPLICATION_NAME} MACOSX_BUNDLE ${APPLICATION_SOURCES})
 
-  # Include directories (so that main.cpp can find FileDialogs.h)
-  target_include_directories(${APPLICATION_NAME} PRIVATE
-    Library/Mac/src
-  )
+    # Include directories (so that main.cpp can find FileDialogs.h)
+    target_include_directories(${APPLICATION_NAME} PRIVATE
+      Library/Mac/src
+    )
 
-  # Link the library and Cocoa framework to the executable
-  target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBRARY_NAME} ${COCOA_LIBRARY})
+    # Link the library and Cocoa framework to the executable
+    target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBRARY_NAME} ${COCOA_LIBRARY})
 
-  # Set the app's Info.plist for macOS
-  set_target_properties(${APPLICATION_NAME} PROPERTIES
-      MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/Application/Mac/src/Info.plist
-  )
+    # Set the app's Info.plist for macOS
+    set_target_properties(${APPLICATION_NAME} PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/Application/Mac/src/Info.plist
+    )
+  endif()
 
 ############## WINDOWS LIBRARY AND TEST APP ########################
 elseif(WIN32)
 
   # Add the source files for the static library
   set(LIBRARY_SOURCES
-      Library/Windows/src/FileDialogs.cpp
+      ${CMAKE_CURRENT_LIST_DIR}/Library/Windows/src/FileDialogs.cpp
   )
 
   set(APPLICATION_SOURCES 
-      Application/Windows/src/main.cpp
+      ${CMAKE_CURRENT_LIST_DIR}/Application/Windows/src/main.cpp
   )
 
   # Create a static library
@@ -77,23 +87,21 @@ elseif(WIN32)
 
   # Set the include directory for this library
   target_include_directories( ${LIBRARY_NAME} PUBLIC
-    Library/Windows/src
+    ${CMAKE_CURRENT_LIST_DIR}/Library/Windows/src
   )
 
-  # Link windows Win32 framework to the static library
-  #find_library(WIN32_LIBRARY win32 REQUIRED)
-  #target_link_libraries(${LIBRARY_NAME} PRIVATE ${WIN32_LIBRARY})
+  if (LIB_BUILD_DEMO)
+    # Add the main.cpp file for the test application
+    add_executable(${APPLICATION_NAME} ${APPLICATION_SOURCES})
 
-  # Add the main.cpp file for the test application
-  add_executable(${APPLICATION_NAME} ${APPLICATION_SOURCES})
+    # Link the library and Windows API dependencies to the executable
+    target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBRARY_NAME})
 
-  # Link the library and Windows API dependencies to the executable
-  target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBRARY_NAME})
-
-  # Include directories (so that main.cpp can find FileDialogs.h)
-  target_include_directories(${APPLICATION_NAME} PRIVATE
-    Library/Windows/src
-  )
+    # Include directories (so that main.cpp can find FileDialogs.h)
+    target_include_directories(${APPLICATION_NAME} PRIVATE
+      ${CMAKE_CURRENT_LIST_DIR}/Library/Windows/src
+    )
+  endif()
 
 else()
     message(FATAL_ERROR "Unsupported platform")
