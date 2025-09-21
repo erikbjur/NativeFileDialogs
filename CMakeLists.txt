@@ -1,18 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
 
+# Set the project name
+project(FileDialogs VERSION 1.4)
+
 # Detect if this repo is the top-level project
-set(LIB_TOPLEVEL OFF)
+set(FILEDIALOGS_TOPLEVEL OFF)
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-  set(LIB_TOPLEVEL ON)
+  set(FILEDIALOGS_TOPLEVEL ON)
 endif()
 
 # Option to build the demo app: ON if top-level, OFF when used as a subproject
-option(LIB_BUILD_DEMO "Build the demo executable for this library" ${LIB_TOPLEVEL})
-
-############## MAC LIBRARY AND TEST APP ########################
-
-# Set the project name
-project(FileDialogs VERSION 1.3)
+option(FILEDIALOGS_BUILD_DEMO "Build the demo executable for this library" ${FILEDIALOGS_TOPLEVEL})
 
 # Enable Objective-C++ support
 set(CMAKE_CXX_STANDARD 20)
@@ -23,10 +21,7 @@ set(LIBRARY_NAME FileDialogLibrary)
 
 set(APPLICATION_NAME FileDialogApp)
 
-# Set the output directories for the targets
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OutputDir}/${PROJECT_NAME})
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OutputDir}/${APPLICATION_NAME} )
-
+############## MAC LIBRARY AND TEST APP ########################
 if (APPLE)
   # Add the source files for the static library
   set(LIBRARY_SOURCES
@@ -52,13 +47,13 @@ if (APPLE)
   find_library( COCOA_LIBRARY Cocoa )
   target_link_libraries( ${LIBRARY_NAME} PRIVATE ${COCOA_LIBRARY} )
 
-  if (LIB_BUILD_DEMO)
+  if (FILEDIALOGS_BUILD_DEMO)
     # Add the main.cpp file for the test application
     add_executable(${APPLICATION_NAME} MACOSX_BUNDLE ${APPLICATION_SOURCES})
 
     # Include directories (so that main.cpp can find FileDialogs.h)
     target_include_directories(${APPLICATION_NAME} PRIVATE
-      Library/Mac/src
+      ${CMAKE_CURRENT_LIST_DIR}/Library/Mac/src
     )
 
     # Link the library and Cocoa framework to the executable
@@ -90,7 +85,7 @@ elseif(WIN32)
     ${CMAKE_CURRENT_LIST_DIR}/Library/Windows/src
   )
 
-  if (LIB_BUILD_DEMO)
+  if (FILEDIALOGS_BUILD_DEMO)
     # Add the main.cpp file for the test application
     add_executable(${APPLICATION_NAME} ${APPLICATION_SOURCES})
 
